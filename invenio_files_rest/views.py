@@ -873,6 +873,11 @@ class ObjectResource(ContentNegotiatedMethodView):
             remove_file_data.delay(str(multipart.file_id))
         return self.make_response("", 204)
 
+    @use_kwargs(get_args)
+    @pass_bucket
+    def head(self, *args, **kwargs):
+        return self.get(*args, **{**kwargs, "download": "HEAD"})
+
     #
     # HTTP methods implementations
     #
@@ -908,7 +913,7 @@ class ObjectResource(ContentNegotiatedMethodView):
                 return response_constructor(obj)
             # If 'download' is missing from query string it will have
             # the value None.
-            return self.send_object(bucket, obj, as_attachment=download is not None)
+            return self.send_object(bucket, obj, as_attachment=download if download == "HEAD" else download is not None)
 
     @use_kwargs(post_args)
     @pass_bucket
